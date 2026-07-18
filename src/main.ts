@@ -207,7 +207,7 @@ async function bootstrap() {
       transport: Transport.GRPC,
       options: {
         package: 'payment_engine',
-        protoPath: join(process.cwd(), 'src/proto/payment-engine.proto'),
+        protoPath: join(__dirname, 'proto/payment-engine.proto'),
         url: `0.0.0.0:${grpcPort}`,
         maxReceiveMessageLength: 1024 * 1024 * 4, 
         maxSendMessageLength: 1024 * 1024 * 4,    // 4MB
