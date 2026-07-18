@@ -91,7 +91,7 @@ export class AuthenticatedGrpcService {
   /**
    * Create authenticated gRPC client wrapper
    */
-  wrapGrpcClient<T>(grpcClient: ClientGrpc, serviceName: string, targetService: string): T {
+  wrapGrpcClient<T extends object>(grpcClient: ClientGrpc, serviceName: string, targetService: string): T {
     const client = grpcClient.getService<T>(serviceName);
     
     // Create a proxy that automatically adds authentication to all calls

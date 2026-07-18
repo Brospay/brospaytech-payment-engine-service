@@ -37,10 +37,10 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
       BankPerformanceMetrics,
     ],
     migrations: ['dist/migrations/*.js'],
-    migrationsRun: env === 'production',
+    migrationsRun: env === 'production' && process.env.RUN_MIGRATIONS_ON_BOOT !== 'false',
     synchronize: env === 'development', // Disabled - use migrations instead
     logging: shouldEnableLogging(env),
-    ssl: env === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: env === 'production' || process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
 
     // High-Performance Database Configuration
     extra: {
@@ -80,7 +80,7 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
       tcp_keepalives_count: 3,
 
       // Connection Security
-      sslmode: env === 'production' ? 'require' : 'disable',
+      sslmode: env === 'production' || process.env.DATABASE_SSL === 'true' ? 'require' : 'disable',
     },
 
     // Query Result Caching (5-minute TTL)
