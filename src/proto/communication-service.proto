@@ -1,0 +1,240 @@
+syntax = "proto3";
+
+package communication;
+
+// Communication Service gRPC definitions
+service CommunicationService {
+  // Webhook processing
+  rpc ProcessWebhookEvent(ProcessWebhookEventRequest) returns (ProcessWebhookEventResponse);
+  rpc CreateWebhookDelivery(CreateWebhookDeliveryRequest) returns (CreateWebhookDeliveryResponse);
+  rpc GetWebhookStatus(GetWebhookStatusRequest) returns (GetWebhookStatusResponse);
+
+  // Notification sending
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+  rpc SendBulkNotifications(SendBulkNotificationsRequest) returns (SendBulkNotificationsResponse);
+  rpc GetNotificationStatus(GetNotificationStatusRequest) returns (GetNotificationStatusResponse);
+
+  // Template management
+  rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse);
+  rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse);
+
+  // Event streaming
+  rpc BroadcastEvent(BroadcastEventRequest) returns (BroadcastEventResponse);
+  rpc SubscribeToEvents(SubscribeToEventsRequest) returns (stream EventStreamResponse);
+
+  // Alert management
+  rpc CreateAlert(CreateAlertRequest) returns (CreateAlertResponse);
+  rpc GetAlerts(GetAlertsRequest) returns (GetAlertsResponse);
+
+  // Health check
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Webhook processing messages
+message ProcessWebhookEventRequest {
+  string tsp = 1;
+  string event_type = 2;
+  string tsp_event_id = 3;
+  string merchant_id = 4;
+  string transaction_id = 5;
+  string payload = 6; // JSON string
+  string signature = 7;
+  string source_ip = 8;
+}
+
+message ProcessWebhookEventResponse {
+  bool success = 1;
+  string message = 2;
+  string webhook_event_id = 3;
+  string error_code = 4;
+}
+
+message CreateWebhookDeliveryRequest {
+  string webhook_event_id = 1;
+  string merchant_id = 2;
+  string webhook_url = 3;
+  string payload = 4; // JSON string
+  string priority = 5;
+}
+
+message CreateWebhookDeliveryResponse {
+  bool success = 1;
+  string message = 2;
+  string delivery_id = 3;
+}
+
+message GetWebhookStatusRequest {
+  string webhook_event_id = 1;
+}
+
+message GetWebhookStatusResponse {
+  string status = 1;
+  int32 attempts = 2;
+  string last_error = 3;
+  string processed_at = 4;
+}
+
+// Notification messages
+message SendNotificationRequest {
+  string channel = 1; // email, sms, push, telegram
+  string type = 2;
+  string recipient_id = 3;
+  string recipient_contact = 4;
+  string subject = 5;
+  string message = 6;
+  string template_id = 7;
+  string template_variables = 8; // JSON string
+  string priority = 9;
+  string scheduled_at = 10;
+}
+
+message SendNotificationResponse {
+  bool success = 1;
+  string message = 2;
+  string notification_id = 3;
+  string external_message_id = 4;
+  double estimated_cost = 5;
+}
+
+message SendBulkNotificationsRequest {
+  repeated SendNotificationRequest notifications = 1;
+  bool batch_mode = 2;
+  int32 batch_delay_ms = 3;
+}
+
+message SendBulkNotificationsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string notification_ids = 3;
+  int32 successful_count = 4;
+  int32 failed_count = 5;
+}
+
+message GetNotificationStatusRequest {
+  string notification_id = 1;
+}
+
+message GetNotificationStatusResponse {
+  string status = 1;
+  string sent_at = 2;
+  string delivered_at = 3;
+  string error_message = 4;
+  double cost = 5;
+}
+
+// Template messages
+message RenderTemplateRequest {
+  string template_id = 1;
+  string variables = 2; // JSON string
+}
+
+message RenderTemplateResponse {
+  bool success = 1;
+  string subject = 2;
+  string body = 3;
+  string html = 4;
+  repeated string missing_variables = 5;
+}
+
+message GetTemplateRequest {
+  string template_id = 1;
+  string channel = 2;
+  string type = 3;
+  string merchant_id = 4;
+}
+
+message GetTemplateResponse {
+  bool success = 1;
+  string template_id = 2;
+  string name = 3;
+  string subject_template = 4;
+  string body_template = 5;
+  string html_template = 6;
+  repeated string required_variables = 7;
+}
+
+// Event streaming messages
+message BroadcastEventRequest {
+  string event_type = 1;
+  string channel = 2;
+  string recipient_id = 3;
+  string room = 4;
+  string payload = 5; // JSON string
+  string priority = 6;
+}
+
+message BroadcastEventResponse {
+  bool success = 1;
+  string message = 2;
+  string event_id = 3;
+  int32 subscribers_count = 4;
+}
+
+message SubscribeToEventsRequest {
+  string user_id = 1;
+  repeated string channels = 2;
+  repeated string event_types = 3;
+  string room = 4;
+}
+
+message EventStreamResponse {
+  string event_type = 1;
+  string channel = 2;
+  string payload = 3; // JSON string
+  string timestamp = 4;
+}
+
+// Alert messages
+message CreateAlertRequest {
+  string alert_type = 1;
+  string severity = 2; // low, medium, high, critical
+  string title = 3;
+  string description = 4;
+  string merchant_id = 5;
+  string source = 6;
+  string source_id = 7;
+  string payload = 8; // JSON string
+}
+
+message CreateAlertResponse {
+  bool success = 1;
+  string message = 2;
+  string alert_id = 3;
+}
+
+message GetAlertsRequest {
+  string merchant_id = 1;
+  string severity = 2;
+  string status = 3;
+  int32 limit = 4;
+  int32 offset = 5;
+}
+
+message GetAlertsResponse {
+  bool success = 1;
+  repeated AlertInfo alerts = 2;
+  int32 total_count = 3;
+}
+
+message AlertInfo {
+  string alert_id = 1;
+  string alert_type = 2;
+  string severity = 3;
+  string title = 4;
+  string status = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// Health check messages
+message HealthCheckRequest {
+  string service = 1;
+}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string status = 2;
+  string version = 3;
+  string uptime = 4;
+  map<string, string> checks = 5;
+}

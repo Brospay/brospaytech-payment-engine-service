@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Engine Service - Documentation</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card ul {
+            list-style: none;
+        }
+
+        .card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card li:last-child {
+            border: none;
+        }
+
+        h2 {
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        pre {
+            background: #0d1117;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th,
+        td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-card);
+            color: var(--primary);
+        }
+
+        .endpoint {
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .get {
+            background: #22c55e;
+            color: #000;
+        }
+
+        .post {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .put {
+            background: #f59e0b;
+            color: #000;
+        }
+
+        .delete {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>⚡ Payment Engine Service</h1>
+        <p>Core Transaction Processing with TSP Integration & Smart Routing</p>
+        <span class="badge">v1.0.0</span>
+    </header>
+
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <h3>🎯 Overview</h3>
+                <p>The Payment Engine is the core microservice handling all payment processing, TSP integrations, smart
+                    routing, and fraud detection.</p>
+            </div>
+            <div class="card">
+                <h3>🛠️ Tech Stack</h3>
+                <ul>
+                    <li>Node.js 18+ / NestJS 11</li>
+                    <li>PostgreSQL + TypeORM</li>
+                    <li>Redis + Kafka</li>
+                    <li>gRPC + REST + WebSocket</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>🚀 Quick Start</h2>
+        <pre><code># Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+
+# Run database migrations
+npm run migration:run
+
+# Start development server
+npm run start:dev</code></pre>
+
+        <h2>⚙️ Environment Variables</h2>
+        <table>
+            <tr>
+                <th>Variable</th>
+                <th>Description</th>
+                <th>Default</th>
+            </tr>
+            <tr>
+                <td>PORT</td>
+                <td>HTTP server port</td>
+                <td>5001</td>
+            </tr>
+            <tr>
+                <td>GRPC_PORT</td>
+                <td>gRPC server port</td>
+                <td>50001</td>
+            </tr>
+            <tr>
+                <td>DATABASE_HOST</td>
+                <td>PostgreSQL host</td>
+                <td>localhost</td>
+            </tr>
+            <tr>
+                <td>DATABASE_PORT</td>
+                <td>PostgreSQL port</td>
+                <td>5432</td>
+            </tr>
+            <tr>
+                <td>DATABASE_NAME</td>
+                <td>Database name</td>
+                <td>valorapays_engine</td>
+            </tr>
+            <tr>
+                <td>REDIS_HOST</td>
+                <td>Redis host</td>
+                <td>localhost</td>
+            </tr>
+            <tr>
+                <td>KAFKA_BROKERS</td>
+                <td>Kafka brokers</td>
+                <td>localhost:9092</td>
+            </tr>
+        </table>
+
+        <h2>🔌 Key Features</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>TSP Integration</h3>
+                <ul>
+                    <li>Razorpay</li>
+                    <li>Stripe</li>
+                    <li>PayU</li>
+                    <li>Paytm</li>
+                    <li>Custom adapters</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Smart Routing</h3>
+                <ul>
+                    <li>Success rate optimization</li>
+                    <li>Cost-based routing</li>
+                    <li>Geographic routing</li>
+                    <li>Load balancing</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>Fraud Detection</h3>
+                <ul>
+                    <li>Rule-based detection</li>
+                    <li>Risk scoring</li>
+                    <li>Velocity checks</li>
+                    <li>Blacklist management</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2>📁 Project Structure</h2>
+        <pre><code>src/
+├── adapters/          # TSP adapters
+├── common/            # Shared utilities
+├── config/            # Configuration
+├── dto/               # Data transfer objects
+├── entities/          # Database entities
+├── fraud/             # Fraud detection
+├── grpc/              # gRPC definitions
+├── migrations/        # Database migrations
+├── modules/           # Feature modules
+├── tsp/               # TSP management
+├── webhooks/          # Webhook processing
+└── main.ts            # Entry point</code></pre>
+
+        <h2>🧪 Testing</h2>
+        <pre><code># Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Coverage
+npm run test:cov</code></pre>
+
+        <h2>📖 API Documentation</h2>
+        <p>Swagger UI available at: <code>http://localhost:5001/api/docs</code></p>
+    </div>
+
+    <footer>
+        <p>© 2026 WebBuddy LLC. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>

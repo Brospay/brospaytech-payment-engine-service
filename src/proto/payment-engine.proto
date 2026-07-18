@@ -1,0 +1,1807 @@
+syntax = "proto3";
+
+package payment_engine;
+
+// Core Payment Processing Service
+service PaymentEngineService {
+  // Payment Intent Operations
+  rpc CreatePaymentIntent(CreatePaymentIntentRequest) returns (PaymentIntentResponse);
+  rpc ProcessPayment(ProcessPaymentRequest) returns (PaymentResult);
+  rpc GetPaymentStatus(GetPaymentStatusRequest) returns (PaymentStatusResponse);
+  rpc CancelPaymentIntent(CancelPaymentIntentRequest) returns (CancelPaymentIntentResponse);
+  
+  // Transaction Operations (for Merchant Dashboard)
+  rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse);
+  rpc SearchTransactions(SearchTransactionsRequest) returns (SearchTransactionsResponse);
+  rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse);
+  rpc GetAllTransactions(GetAllTransactionsRequest) returns (GetAllTransactionsResponse);
+  rpc GetTransactionAnalytics(GetTransactionAnalyticsRequest) returns (TransactionAnalyticsResponse);
+  rpc ExportTransactions(ExportTransactionsRequest) returns (ExportTransactionsResponse);
+
+  // Transaction Metrics Operations
+  rpc GetAverageTransactionValue(GetAverageTransactionValueRequest) returns (GetAverageTransactionValueResponse);
+  rpc GetTransactionVolume(GetTransactionVolumeRequest) returns (GetTransactionVolumeResponse);
+  rpc GetTransactionSuccessRate(GetTransactionSuccessRateRequest) returns (GetTransactionSuccessRateResponse);
+  rpc GetPendingTransactions(GetPendingTransactionsRequest) returns (GetPendingTransactionsResponse);
+  rpc GetFailedTransactions(GetFailedTransactionsRequest) returns (GetFailedTransactionsResponse);
+  rpc GetTransactionsSummary(GetTransactionsSummaryRequest) returns (GetTransactionsSummaryResponse);
+  rpc GetMerchantSummary(GetMerchantSummaryRequest) returns (GetMerchantSummaryResponse);
+  
+  // Payout Operations
+  rpc CreatePayout(CreatePayoutRequest) returns (PayoutResponse);
+  rpc CreateManualPayment(CreateManualPaymentRequest) returns (CreateManualPaymentResponse);
+  rpc GetPayoutStatus(GetPayoutStatusRequest) returns (PayoutStatusResponse);
+  rpc ListPayouts(ListPayoutsRequest) returns (ListPayoutsResponse);
+  rpc GetPayoutsByCustomer(GetPayoutsByCustomerRequest) returns (ListPayoutsResponse);
+  rpc GetAllPayoutTransactions(GetAllPayoutTransactionsRequest) returns (PayoutTransactionsResponse);
+  rpc GetPayoutTransactionsSummary(GetPayoutSummaryRequest) returns (PayoutSummaryResponse);
+  rpc RetryPayout(RetryPayoutRequest) returns (PayoutResponse);
+  rpc GetPayoutMethods(GetPayoutMethodsRequest) returns (PayoutMethodsResponse);
+  rpc GetPayoutStats(GetPayoutStatsRequest) returns (PayoutStatsResponse);
+  rpc GetPayoutAnalytics(GetPayoutAnalyticsRequest) returns (PayoutAnalyticsResponse);
+  
+  // Batch Payout Operations
+  rpc UploadBatchPayout(UploadBatchPayoutRequest) returns (BatchPayoutResponse);
+  rpc ValidateBatchPayout(ValidateBatchPayoutRequest) returns (BatchPayoutValidationResponse);
+  rpc ConfirmBatchPayout(ConfirmBatchPayoutRequest) returns (BatchPayoutResponse);
+  rpc GetBatchPayoutStatus(GetBatchPayoutStatusRequest) returns (BatchPayoutStatusResponse);
+  rpc ListBatchPayouts(ListBatchPayoutsRequest) returns (ListBatchPayoutsResponse);
+  rpc GetBatchPayouts(GetBatchPayoutsRequest) returns (GetBatchPayoutsResponse);
+  rpc RetryFailedBatchPayouts(RetryFailedBatchPayoutsRequest) returns (BatchPayoutResponse);
+  
+  // Merchant Settlement Operations
+  rpc CreateMerchantSettlement(CreateMerchantSettlementRequest) returns (MerchantSettlementResponse);
+  rpc GetSettlementStatus(GetSettlementStatusRequest) returns (SettlementStatusResponse);
+  rpc ListSettlements(ListSettlementsRequest) returns (ListSettlementsResponse);
+  rpc GetSettlementDetails(GetSettlementDetailsRequest) returns (GetSettlementDetailsResponse);
+  rpc CancelSettlement(CancelSettlementRequest) returns (CancelSettlementResponse);
+  rpc GetSettlementSummary(GetSettlementSummaryRequest) returns (GetSettlementSummaryResponse);
+  rpc GetSettlementLimits(GetSettlementLimitsRequest) returns (GetSettlementLimitsResponse);
+  rpc AddBankAccount(AddBankAccountRequest) returns (AddBankAccountResponse);
+  rpc VerifyBankAccount(VerifyBankAccountRequest) returns (VerifyBankAccountResponse);
+  rpc CancelBatchPayout(CancelBatchPayoutRequest) returns (BatchPayoutResponse);
+  
+  // Refund Operations
+  rpc CreateRefund(CreateRefundRequest) returns (RefundResponse);
+  rpc CreateBatchRefund(CreateBatchRefundRequest) returns (CreateBatchRefundResponse);
+  rpc GetRefund(GetRefundRequest) returns (GetRefundResponse);
+  rpc GetRefundStatus(GetRefundStatusRequest) returns (RefundStatusResponse);
+  rpc ListRefunds(ListRefundsRequest) returns (ListRefundsResponse);
+  rpc GetRefundStats(GetRefundStatsRequest) returns (GetRefundStatsResponse);
+  rpc CancelRefund(CancelRefundRequest) returns (CancelRefundResponse);
+  rpc ApproveRefund(ApproveRefundRequest) returns (ApproveRefundResponse);
+  
+  // TSP Management Operations (Admin)
+  rpc GetTSPConfigurations(GetTSPConfigurationsRequest) returns (TSPConfigurationsResponse);
+  rpc CreateTSPConfiguration(CreateTSPConfigRequest) returns (TSPConfigResponse);
+  rpc UpdateTSPConfiguration(UpdateTSPConfigRequest) returns (TSPConfigResponse);
+  rpc ToggleTSPStatus(ToggleTSPStatusRequest) returns (ToggleTSPStatusResponse);
+  rpc ActivateTSPConfiguration(ActivateTSPConfigurationRequest) returns (ActivateTSPConfigurationResponse);
+  rpc DeactivateTSPConfiguration(DeactivateTSPConfigurationRequest) returns (DeactivateTSPConfigurationResponse);
+  rpc GetTSPHealth(GetTSPHealthRequest) returns (TSPHealthResponse);
+  
+  // Smart Routing Operations
+  rpc GetRoutingDecision(GetRoutingDecisionRequest) returns (RoutingDecisionResponse);
+  rpc CreateRoutingOverride(CreateRoutingOverrideRequest) returns (RoutingOverrideResponse);
+  rpc GetActiveOverrides(GetActiveOverridesRequest) returns (ActiveOverridesResponse);
+  
+  // Performance Monitoring
+  rpc GetPerformanceMetrics(GetPerformanceMetricsRequest) returns (PerformanceMetricsResponse);
+  rpc GetBankPerformance(GetBankPerformanceRequest) returns (BankPerformanceResponse);
+  rpc GetSystemHealth(GetSystemHealthRequest) returns (SystemHealthResponse);
+}
+
+// Payment Intent Messages
+message CreatePaymentIntentRequest {
+  int32 merchant_id = 1;
+  string customer_id = 2;
+  string customer_email = 3;
+  string customer_phone = 4;
+  double amount = 5;
+  string currency = 6;
+  string description = 7;
+  string payment_method = 8;
+  string customer_bank = 9;
+  string return_url = 10;
+  string webhook_url = 11;
+  map<string, string> metadata = 12;
+  string request_id = 13;
+  string environment = 14;
+}
+
+message PaymentIntentResponse {
+  bool success = 1;
+  string intent_id = 2;
+  int32 merchant_id = 3;
+  double amount = 4;
+  string currency = 5;
+  string status = 6;
+  string payment_url = 7;
+  string qr_code = 8;
+  string deep_link = 9;
+  string selected_tsp = 10;
+  RoutingDecision routing_decision = 11;
+  string expires_at = 12;
+  int32 estimated_completion_time = 13;
+  double processing_fee = 14;
+  string created_at = 15;
+  map<string, string> metadata = 16;
+  string error_message = 17;
+}
+
+message RoutingDecision {
+  string selected_tsp = 1;
+  string reasoning = 2;
+  double confidence = 3;
+  repeated string alternative_tsps = 4;
+  int32 decision_time_ms = 5;
+  bool fallback_available = 6;
+  map<string, double> decision_factors = 7;
+}
+
+message ProcessPaymentRequest {
+  string intent_id = 1;
+  PaymentMethodDetails payment_method_details = 2;
+  CustomerDetails customer_details = 3;
+  DeviceInfo device_info = 4;
+  string request_id = 5;
+}
+
+message PaymentMethodDetails {
+  string type = 1;
+  string card_number = 2;
+  string expiry_month = 3;
+  string expiry_year = 4;
+  string cvv = 5;
+  string card_holder_name = 6;
+  string upi_id = 7;
+  string bank_code = 8;
+  string account_number = 9;
+  string ifsc_code = 10;
+  string wallet_provider = 11;
+  string wallet_phone = 12;
+}
+
+message CustomerDetails {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+  Address address = 4;
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string country = 4;
+  string postal_code = 5;
+}
+
+message DeviceInfo {
+  string user_agent = 1;
+  string ip_address = 2;
+  string device_id = 3;
+  string fingerprint = 4;
+}
+
+message PaymentResult {
+  bool success = 1;
+  string intent_id = 2;
+  string external_transaction_id = 3;
+  string status = 4;
+  double amount = 5;
+  string currency = 6;
+  int32 processing_time_ms = 7;
+  string tsp_provider = 8;
+  string failure_reason = 9;
+  FraudAssessment fraud_assessment = 10;
+  string completed_at = 11;
+  NextAction next_action = 12;
+  string error_message = 13;
+}
+
+message FraudAssessment {
+  double risk_score = 1;
+  repeated string risk_factors = 2;
+  string recommendation = 3;
+}
+
+message NextAction {
+  string action = 1;
+  string url = 2;
+  int32 poll_interval = 3;
+  map<string, string> data = 4;
+}
+
+// TSP Management Messages
+message GetTSPConfigurationsRequest {
+  string environment = 1;
+  bool active_only = 2;
+  string request_id = 3;
+}
+
+message TSPConfigurationsResponse {
+  bool success = 1;
+  repeated TSPConfigData configurations = 2;
+  string error_message = 3;
+}
+
+message TSPConfigResponse {
+  bool success = 1;
+  string message = 2;
+  TSPConfigData data = 3;
+  string error_message = 4;
+}
+
+message TSPConfigData {
+  int32 config_id = 1;
+  string provider_name = 2;
+  string display_name = 3;
+  string environment = 4;
+  bool is_active = 5;
+  int32 priority = 6;
+  string health_status = 7;
+  string last_health_check = 8;
+  map<string, string> configuration = 9;
+  repeated string supported_currencies = 10;
+  repeated string supported_payment_methods = 11;
+  string webhook_url = 12;
+  int32 connection_timeout = 13;
+  int32 read_timeout = 14;
+  string created_at = 15;
+  string updated_at = 16;
+  string created_by = 17;
+  string updated_by = 18;
+}
+
+message SupportedFeatures {
+  bool instant_payouts = 1;
+  bool refunds = 2;
+  bool recurring_payments = 3;
+  bool webhooks = 4;
+}
+
+message PerformanceMetrics {
+  double success_rate = 1;
+  int32 average_latency = 2;
+  int32 total_transactions = 3;
+  string last_updated = 4;
+}
+
+// Performance Monitoring Messages
+message GetPerformanceMetricsRequest {
+  string time_range_start = 1;
+  string time_range_end = 2;
+  string measurement_window = 3;
+  string tsp_provider = 4;
+  string environment = 5;
+  string request_id = 6;
+}
+
+message PerformanceMetricsResponse {
+  bool success = 1;
+  repeated TSPPerformanceData tsp_performance = 2;
+  SystemPerformanceData system_performance = 3;
+  string error_message = 4;
+}
+
+message TSPPerformanceData {
+  string provider_name = 1;
+  string environment = 2;
+  double success_rate = 3;
+  int32 average_latency = 4;
+  int32 total_transactions = 5;
+  string measurement_window = 6;
+  string timestamp = 7;
+}
+
+message SystemPerformanceData {
+  int32 total_requests = 1;
+  double average_response_time = 2;
+  double throughput_per_second = 3;
+  double error_rate = 4;
+  double cpu_utilization = 5;
+  double memory_utilization = 6;
+  double cache_hit_rate = 7;
+}
+
+// Bank Performance Messages
+message GetBankPerformanceRequest {
+  string bank_code = 1;
+  string time_range_start = 2;
+  string time_range_end = 3;
+  string tsp_provider = 4;
+  string environment = 5;
+  string request_id = 6;
+}
+
+message BankPerformanceResponse {
+  bool success = 1;
+  repeated BankPerformanceData bank_performance = 2;
+  string error_message = 3;
+}
+
+message BankPerformanceData {
+  string bank_code = 1;
+  string bank_name = 2;
+  string tsp_provider_name = 3;
+  double success_rate = 4;
+  int32 avg_response_time = 5;
+  int32 total_transactions = 6;
+  string health_status = 7;
+  bool is_downtime = 8;
+  string customer_recommendation = 9;
+  bool should_alert_merchants = 10;
+  string merchant_alert = 11;
+}
+
+// Common Messages
+message GetPaymentStatusRequest {
+  string intent_id = 1;
+  string request_id = 2;
+}
+
+message PaymentStatusResponse {
+  bool success = 1;
+  string intent_id = 2;
+  string status = 3;
+  double amount = 4;
+  string currency = 5;
+  string tsp_provider = 6;
+  string external_transaction_id = 7;
+  string failure_reason = 8;
+  string completed_at = 9;
+  string error_message = 10;
+}
+
+// Cancel Payment Intent Messages
+message CancelPaymentIntentRequest {
+  string intent_id = 1;
+  string reason = 2;
+  string request_id = 3;
+}
+
+message CancelPaymentIntentResponse {
+  bool success = 1;
+  string intent_id = 2;
+  string status = 3;
+  string cancelled_at = 4;
+  string error_message = 5;
+}
+
+// Payout Messages
+message CreatePayoutRequest {
+  int32 merchant_id = 1;
+  string beneficiary_account = 2;
+  string beneficiary_ifsc = 3;
+  string beneficiary_name = 4;
+  double amount = 5;
+  string currency = 6;
+  string purpose = 7;
+  string reference_id = 8;
+  string webhook_url = 9;
+  map<string, string> metadata = 10;
+  string request_id = 11;
+}
+
+message PayoutResponse {
+  bool success = 1;
+  string payout_id = 2;
+  string status = 3;
+  double amount = 4;
+  string currency = 5;
+  string tsp_provider = 6;
+  string external_payout_id = 7;
+  string created_at = 8;
+  string estimated_completion = 9;
+  string error_message = 10;
+}
+
+message GetPayoutStatusRequest {
+  string payout_id = 1;
+  string request_id = 2;
+}
+
+message PayoutStatusResponse {
+  bool success = 1;
+  string payout_id = 2;
+  string status = 3;
+  double amount = 4;
+  string currency = 5;
+  string tsp_provider = 6;
+  string external_payout_id = 7;
+  string failure_reason = 8;
+  string completed_at = 9;
+  string error_message = 10;
+}
+
+message ListPayoutsRequest {
+  string merchant_id = 1;
+  string status = 2;
+  string currency = 3;
+  string payout_type = 4;
+  string from_date = 5;
+  string to_date = 6;
+  double min_amount = 7;
+  double max_amount = 8;
+  string customer_id = 9;
+  int32 page = 10;
+  int32 limit = 11;
+  string request_id = 12;
+}
+
+message ListPayoutsResponse {
+  bool success = 1;
+  repeated PayoutData payouts = 2;
+  PaginationData pagination = 3;
+  string error_message = 4;
+}
+
+message PayoutData {
+  string payout_id = 1;
+  string merchant_id = 2;
+  string customer_id = 3;
+  string customer_email = 4;
+  string customer_phone = 5;
+  string beneficiary_account = 6;
+  string beneficiary_ifsc = 7;
+  string beneficiary_swift = 8;
+  string beneficiary_iban = 9;
+  string beneficiary_name = 10;
+  string beneficiary_mobile = 11;
+  string beneficiary_vpa = 12;
+  string bank_name = 13;
+  double amount = 14;
+  string currency = 15;
+  string payout_type = 16;
+  string purpose = 17;
+  string description = 18;
+  string status = 19;
+  string tsp_provider = 20;
+  string external_payout_id = 21;
+  double processing_fee = 22;
+  double total_debited_amount = 23;
+  string estimated_completion = 24;
+  string failure_reason = 25;
+  string created_at = 26;
+  string updated_at = 27;
+}
+
+message PaginationData {
+  int32 total = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int32 total_pages = 4;
+}
+
+message GetPayoutsByCustomerRequest {
+  string merchant_id = 1;
+  string customer_id = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  string request_id = 5;
+}
+
+message RetryPayoutRequest {
+  string payout_id = 1;
+  string force_tsp = 2;
+  string request_id = 3;
+}
+
+message GetPayoutMethodsRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message PayoutMethodsResponse {
+  bool success = 1;
+  repeated PayoutMethod methods = 2;
+  string error_message = 3;
+}
+
+message PayoutMethod {
+  string method_id = 1;
+  string type = 2;
+  string name = 3;
+  string display_name = 4;
+  string description = 5;
+  repeated string supported_currencies = 6;
+  repeated string supported_countries = 7;
+  string estimated_time = 8;
+  double min_amount = 9;
+  double max_amount = 10;
+  double fee_percentage = 11;
+  double fixed_fee = 12;
+  bool is_active = 13;
+}
+
+message GetPayoutStatsRequest {
+  string merchant_id = 1;
+  string from_date = 2;
+  string to_date = 3;
+  string currency = 4;
+  string request_id = 5;
+}
+
+message PayoutStatsResponse {
+  bool success = 1;
+  PayoutStats stats = 2;
+  string error_message = 3;
+}
+
+message PayoutStats {
+  int32 total_payouts = 1;
+  int32 completed_payouts = 2;
+  int32 pending_payouts = 3;
+  int32 failed_payouts = 4;
+  double total_amount = 5;
+  double completed_amount = 6;
+  double pending_amount = 7;
+  double total_fees = 8;
+  double success_rate = 9;
+  string currency = 10;
+  map<string, int32> payouts_by_method = 11;
+  map<string, int32> payouts_by_status = 12;
+}
+
+// Payout Analytics Messages
+message GetPayoutAnalyticsRequest {
+  int32 merchant_id = 1;
+  string period = 2;
+  string environment = 3;
+  string request_id = 4;
+  string merchant_id_string = 5;  // String merchant ID (e.g., "mer_xxx")
+}
+
+message PayoutAnalyticsResponse {
+  bool success = 1;
+  string message = 2;
+  string period = 3;
+  DateRange date_range = 4;
+  PayoutMetrics metrics = 5;
+  repeated TrendData trends = 6;
+  repeated PayoutMethodData top_payout_methods = 7;
+}
+
+message PayoutMetrics {
+  int32 total_payouts = 1;
+  int32 successful_payouts = 2;
+  int32 failed_payouts = 3;
+  double total_volume = 4;
+  double success_rate = 5;
+  double average_payout_value = 6;
+  int32 unique_customers = 7;
+}
+
+message PayoutMethodData {
+  string method = 1;
+  int32 count = 2;
+  double volume = 3;
+}
+
+// Refund Messages
+message CreateRefundRequest {
+  string merchant_id = 1;
+  string customer_id = 2;
+  string transaction_id = 3;
+  string reason = 4;
+  string request_id = 5;
+}
+
+message CreateBatchRefundRequest {
+  string merchant_id = 1;
+  repeated BatchRefundItem refunds = 2;
+  string request_id = 3;
+}
+
+message BatchRefundItem {
+  string customer_id = 1;
+  string transaction_id = 2;
+  string reason = 3;
+}
+
+message GetRefundRequest {
+  string refund_id = 1;
+  string merchant_id = 2;
+}
+
+message ListRefundsRequest {
+  string merchant_id = 1;
+  string customer_id = 2;
+  string transaction_id = 3;
+  string status = 4;
+  string start_date = 5;
+  string end_date = 6;
+  int32 page = 7;
+  int32 limit = 8;
+  string currency = 9;
+}
+
+message CancelRefundRequest {
+  string refund_id = 1;
+  string merchant_id = 2;
+}
+
+message ApproveRefundRequest {
+  string refund_id = 1;
+  string action = 2;
+  string approved_by = 3;
+  string notes = 4;
+}
+
+message RefundResponse {
+  bool success = 1;
+  string message = 2;
+  RefundData refund = 3;
+  string error_code = 4;
+}
+
+message CreateBatchRefundResponse {
+  bool success = 1;
+  string message = 2;
+  repeated RefundData refunds = 3;
+  repeated BatchRefundError errors = 4;
+  int32 total_requested = 5;
+  int32 total_successful = 6;
+  int32 total_failed = 7;
+}
+
+message BatchRefundError {
+  string transaction_id = 1;
+  string customer_id = 2;
+  string error_message = 3;
+}
+
+message GetRefundResponse {
+  bool success = 1;
+  string message = 2;
+  RefundData refund = 3;
+  string error_code = 4;
+}
+
+message ListRefundsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated RefundData refunds = 3;
+  RefundPaginationData pagination = 4;
+}
+
+message GetRefundStatsRequest {
+  string merchant_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  string currency = 4;
+  string request_id = 5;
+}
+
+message GetRefundStatsResponse {
+  bool success = 1;
+  RefundStats stats = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message RefundStats {
+  int32 total_refunds = 1;
+  int32 pending_refunds = 2;
+  int32 approved_refunds = 3;
+  int32 rejected_refunds = 4;
+  int32 processing_refunds = 5;
+  int32 completed_refunds = 6;
+  int32 failed_refunds = 7;
+  int32 cancelled_refunds = 8;
+  double total_refund_amount = 9;
+  double average_refund_amount = 10;
+  double average_processing_time = 11;
+  double refund_rate = 12;
+}
+
+message CancelRefundResponse {
+  bool success = 1;
+  string message = 2;
+  RefundData refund = 3;
+  string error_code = 4;
+}
+
+message ApproveRefundResponse {
+  bool success = 1;
+  string message = 2;
+  RefundData refund = 3;
+  string error_code = 4;
+}
+
+message RefundData {
+  string refund_id = 1;
+  string merchant_id = 2;
+  string customer_id = 3;
+  string transaction_id = 4;
+  string payment_intent_id = 5;
+  double amount = 6;
+  double original_amount = 7;
+  string currency = 8;
+  string refund_type = 9;
+  string status = 10;
+  string tsp_provider = 11;
+  string external_refund_id = 12;
+  string reason = 13;
+  string created_at = 14;
+  string completed_at = 15;
+  string failure_reason = 16;
+  int32 processing_time_ms = 17;
+  bool auto_process = 18;
+  string approved_by = 19;
+  string approved_at = 20;
+  string approval_notes = 21;
+}
+
+message RefundPaginationData {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 total = 3;
+  int32 total_pages = 4;
+}
+
+message GetRefundStatusRequest {
+  string refund_id = 1;
+  string request_id = 2;
+}
+
+message RefundStatusResponse {
+  bool success = 1;
+  string refund_id = 2;
+  string intent_id = 3;
+  string status = 4;
+  double amount = 5;
+  string currency = 6;
+  string tsp_provider = 7;
+  string external_refund_id = 8;
+  string failure_reason = 9;
+  string completed_at = 10;
+  string error_message = 11;
+}
+
+// TSP Management Messages (Additional)
+message CreateTSPConfigRequest {
+  string provider_name = 1;
+  string display_name = 2;
+  string environment = 3;
+  bool is_active = 4;
+  int32 priority = 5;
+  map<string, string> credentials = 6;
+  map<string, string> configuration = 7;
+  repeated string supported_currencies = 8;
+  repeated string supported_payment_methods = 9;
+  string webhook_url = 10;
+  int32 connection_timeout = 11;
+  int32 read_timeout = 12;
+  string created_by = 13;
+  string request_id = 14;
+}
+
+message UpdateTSPConfigRequest {
+  int32 config_id = 1;
+  string display_name = 2;
+  int32 priority = 3;
+  map<string, string> configuration = 4;
+  SupportedFeatures supported_features = 5;
+  string environment = 7; // Optional: update environment
+  string request_id = 6;
+}
+
+message ToggleTSPStatusRequest {
+  int32 config_id = 1;
+  bool is_active = 2;
+  string request_id = 3;
+}
+
+message ToggleTSPStatusResponse {
+  bool success = 1;
+  int32 config_id = 2;
+  bool is_active = 3;
+  string error_message = 4;
+}
+
+message ActivateTSPConfigurationRequest {
+  int32 config_id = 1;
+  string provider_name = 2;
+  string environment = 3;
+  string request_id = 4;
+}
+
+message ActivateTSPConfigurationResponse {
+  bool success = 1;
+  string message = 2;
+  TSPConfigData data = 3;
+  string error_message = 4;
+}
+
+message DeactivateTSPConfigurationRequest {
+  int32 config_id = 1;
+  string provider_name = 2;
+  string environment = 3;
+  string request_id = 4;
+}
+
+message DeactivateTSPConfigurationResponse {
+  bool success = 1;
+  string message = 2;
+  TSPConfigData data = 3;
+  string error_message = 4;
+}
+
+message GetTSPHealthRequest {
+  string provider_name = 1;
+  string environment = 2;
+  string request_id = 3;
+}
+
+message TSPHealthResponse {
+  bool success = 1;
+  repeated TSPHealthData tsp_health = 2;
+  string error_message = 3;
+}
+
+message TSPHealthData {
+  string provider_name = 1;
+  string environment = 2;
+  string health_status = 3;
+  int32 response_time_ms = 4;
+  string last_check = 5;
+  repeated string issues = 6;
+}
+
+// Smart Routing Messages
+message GetRoutingDecisionRequest {
+  int32 merchant_id = 1;
+  double amount = 2;
+  string currency = 3;
+  string payment_method = 4;
+  string customer_bank = 5;
+  string customer_id = 6;
+  string environment = 7;
+  string request_id = 8;
+}
+
+message RoutingDecisionResponse {
+  bool success = 1;
+  RoutingDecision decision = 2;
+  string error_message = 3;
+}
+
+message CreateRoutingOverrideRequest {
+  int32 merchant_id = 1;
+  string condition_type = 2;
+  map<string, string> conditions = 3;
+  string target_tsp = 4;
+  int32 priority = 5;
+  string valid_until = 6;
+  string created_by = 7;
+  string request_id = 8;
+}
+
+message RoutingOverrideResponse {
+  bool success = 1;
+  int32 override_id = 2;
+  string created_at = 3;
+  string error_message = 4;
+}
+
+message GetActiveOverridesRequest {
+  int32 merchant_id = 1;
+  string environment = 2;
+  string request_id = 3;
+}
+
+message ActiveOverridesResponse {
+  bool success = 1;
+  repeated RoutingOverrideData overrides = 2;
+  string error_message = 3;
+}
+
+message RoutingOverrideData {
+  int32 override_id = 1;
+  int32 merchant_id = 2;
+  string condition_type = 3;
+  map<string, string> conditions = 4;
+  string target_tsp = 5;
+  int32 priority = 6;
+  string valid_until = 7;
+  string created_at = 8;
+  string created_by = 9;
+}
+
+// System Health Messages
+message GetSystemHealthRequest {
+  string request_id = 1;
+}
+
+message SystemHealthResponse {
+  bool success = 1;
+  string overall_status = 2;
+  DatabaseHealth database = 3;
+  RedisHealth redis = 4;
+  repeated TSPHealth tsp_services = 5;
+  GRPCHealth grpc_services = 6;
+  string timestamp = 7;
+  string error_message = 8;
+}
+
+message DatabaseHealth {
+  string status = 1;
+  int32 connection_pool_size = 2;
+  int32 active_connections = 3;
+  int32 response_time_ms = 4;
+}
+
+message RedisHealth {
+  string status = 1;
+  int32 response_time_ms = 2;
+  int32 memory_usage_mb = 3;
+  int32 connected_clients = 4;
+}
+
+message TSPHealth {
+  string provider_name = 1;
+  string status = 2;
+  int32 response_time_ms = 3;
+  string last_check = 4;
+}
+
+message GRPCHealth {
+  string merchant_service = 1;
+  string wallet_service = 2;
+  int32 merchant_response_time = 3;
+  int32 wallet_response_time = 4;
+}
+
+// Transaction Query Messages
+message SearchTransactionsRequest {
+  string merchant_id = 1;
+  string status = 2;
+  string payment_method = 3;
+  string start_date = 4;
+  string end_date = 5;
+  double min_amount = 6;
+  double max_amount = 7;
+  string customer_id = 8;
+  string transaction_id = 9;
+  string environment = 10;
+  int32 page = 11;
+  int32 limit = 12;
+  string request_id = 13;
+  string search = 14;
+  string currency = 15;
+}
+
+message SearchTransactionsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated TransactionData transactions = 3;
+  int32 total = 4;
+  int32 page = 5;
+  int32 limit = 6;
+  bool has_next = 7;
+  bool has_previous = 8;
+}
+
+message TransactionData {
+  string id = 1;
+  string intent_id = 2;
+  int32 merchant_id = 3;
+  string merchant_id_string = 17; // string merchant id (e.g., mer_xxx)
+  string customer_id = 4;
+  string customer_name = 5;
+  string customer_email = 6;
+  string customer_phone = 7;
+  double amount = 8;
+  string currency = 9;
+  string status = 10;
+  string payment_method = 11;
+  string description = 12;
+  string created_at = 13;
+  string updated_at = 14;
+  PaymentIntentResponse intent = 15;
+  map<string, string> metadata = 16;
+}
+
+// Create Transaction Messages (for Merchant Dashboard)
+message CreateTransactionRequest {
+  string merchant_id = 1;          
+  string customer_name = 2;         
+  string customer_email = 3;        
+  string customer_phone = 4;        
+  double amount = 5;                
+  string currency = 6;               
+  string payment_method = 7;        
+  string order_id = 8;              
+  string description = 9;           
+  string request_id = 10;            
+  string environment = 11;          
+  map<string, string> metadata = 12; 
+}
+
+message CreateTransactionResponse {
+  bool success = 1;                 
+  string message = 2;                
+  string transaction_id = 3;         
+  string intent_id = 4;              
+  TransactionData transaction = 5;   
+  string payment_url = 6;            
+  string error_message = 7;          
+}
+
+message GetTransactionRequest {
+  string transaction_id = 1;
+  string merchant_id = 2;
+  string request_id = 3;
+}
+
+message GetTransactionResponse {
+  bool success = 1;
+  string message = 2;
+  TransactionData transaction = 3;
+}
+
+message GetAllTransactionsRequest {
+  string status = 1;
+  string payment_method = 2;
+  string start_date = 3;
+  string end_date = 4;
+  int32 page = 5;
+  int32 limit = 6;
+  string search = 7;
+  string merchant_id = 8;
+  string risk_level = 9;
+  double min_amount = 10;
+  double max_amount = 11;
+  string request_id = 12;
+  string transaction_id = 13;
+  string currency = 14;
+  string customer_id = 15;
+  string type = 16;
+  string customer_email = 17;
+  string customer_identifier = 18;
+  string customer_phone = 19;
+  string sortBy = 20;
+  string sort_order = 21;
+  bool include_refunds = 22;
+}
+
+message GetAllTransactionsResponse {
+  bool success = 1;
+  string message = 2;
+  TransactionListData data = 3;
+}
+
+message TransactionListData {
+  repeated TransactionData transactions = 1;
+  PaginationData pagination = 2;
+}
+
+message GetTransactionAnalyticsRequest {
+  string merchant_id = 1;
+  string period = 2;
+  string environment = 3;
+  string request_id = 4;
+  string currency = 5;
+}
+
+message TransactionAnalyticsResponse {
+  bool success = 1;
+  string message = 2;
+  string period = 3;
+  DateRange date_range = 4;
+  TransactionMetrics metrics = 5;
+  repeated TrendData trends = 6;
+  repeated PaymentMethodData top_payment_methods = 7;
+}
+
+message DateRange {
+  string start_date = 1;
+  string end_date = 2;
+}
+
+message TransactionMetrics {
+  int32 total_transactions = 1;
+  int32 successful_transactions = 2;
+  int32 failed_transactions = 3;
+  double total_volume = 4;
+  double success_rate = 5;
+  double average_transaction_value = 6;
+  int32 unique_customers = 7;
+}
+
+message TrendData {
+  string date = 1;
+  double volume = 2;
+  int32 count = 3;
+}
+
+message PaymentMethodData {
+  string method = 1;
+  int32 count = 2;
+  double volume = 3;
+}
+
+message ExportTransactionsRequest {
+  string merchant_id = 1;
+  string format = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string status = 5;
+  string payment_method = 6;
+  string environment = 7;
+  string request_id = 8;
+}
+
+message ExportTransactionsResponse {
+  bool success = 1;
+  string message = 2;
+  string export_id = 3;
+  string format = 4;
+  int32 record_count = 5;
+  string download_url = 6;
+  string expires_at = 7;
+}
+
+// ==================== Batch Payout Messages ====================
+
+message UploadBatchPayoutRequest {
+  string merchant_id = 1;
+  bytes file_content = 2;
+  string file_name = 3;
+  string file_type = 4; // csv, xlsx
+  string webhook_url = 5;
+  string request_id = 6;
+}
+
+message ValidateBatchPayoutRequest {
+  string merchant_id = 1;
+  string batch_id = 2;
+  string request_id = 3;
+}
+
+message ConfirmBatchPayoutRequest {
+  string merchant_id = 1;
+  string batch_id = 2;
+  string request_id = 3;
+}
+
+message GetBatchPayoutStatusRequest {
+  string merchant_id = 1;
+  string batch_id = 2;
+  string request_id = 3;
+}
+
+message ListBatchPayoutsRequest {
+  string merchant_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  string status = 4;
+  string from_date = 5;
+  string to_date = 6;
+  string request_id = 7;
+}
+
+message GetBatchPayoutsRequest {
+  string merchant_id = 1;
+  string batch_id = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  string status = 5;
+  string request_id = 6;
+}
+
+message RetryFailedBatchPayoutsRequest {
+  string merchant_id = 1;
+  string batch_id = 2;
+  string request_id = 3;
+}
+
+message CancelBatchPayoutRequest {
+  string merchant_id = 1;
+  string batch_id = 2;
+  string request_id = 3;
+}
+
+message BatchPayoutResponse {
+  bool success = 1;
+  string batch_id = 2;
+  int32 total_payouts = 3;
+  double total_amount = 4;
+  string currency = 5;
+  double estimated_fees = 6;
+  string status = 7;
+  string message = 8;
+  repeated ValidationError validation_errors = 9;
+  repeated PayoutPreview preview_data = 10;
+}
+
+message BatchPayoutValidationResponse {
+  bool success = 1;
+  string batch_id = 2;
+  int32 total_rows = 3;
+  int32 valid_rows = 4;
+  int32 invalid_rows = 5;
+  double total_amount = 6;
+  string currency = 7;
+  double estimated_fees = 8;
+  repeated ValidationError validation_errors = 9;
+}
+
+message BatchPayoutStatusResponse {
+  bool success = 1;
+  string batch_id = 2;
+  string status = 3;
+  int32 total_payouts = 4;
+  int32 successful_payouts = 5;
+  int32 failed_payouts = 6;
+  int32 pending_payouts = 7;
+  double progress_percentage = 8;
+  ProcessingStats processing_stats = 9;
+  double total_amount = 10;
+  string currency = 11;
+  double total_fees = 12;
+}
+
+message ListBatchPayoutsResponse {
+  bool success = 1;
+  repeated BatchPayoutInfo batches = 2;
+  PaginationInfo pagination = 3;
+}
+
+message GetBatchPayoutsResponse {
+  bool success = 1;
+  string batch_id = 2;
+  repeated PayoutData payouts = 3;
+  PaginationInfo pagination = 4;
+}
+
+message BatchPayoutInfo {
+  string batch_id = 1;
+  string file_name = 2;
+  string status = 3;
+  int32 total_payouts = 4;
+  int32 successful_payouts = 5;
+  int32 failed_payouts = 6;
+  int32 pending_payouts = 7;
+  double total_amount = 8;
+  string currency = 9;
+  double total_fees = 10;
+  string created_at = 11;
+  string updated_at = 12;
+  double progress_percentage = 13;
+}
+
+message PayoutPreview {
+  int32 row_number = 1;
+  string customer_email = 2;
+  string beneficiary_name = 3;
+  double amount = 4;
+  string currency = 5;
+  string payout_type = 6;
+  string beneficiary_account = 7;
+}
+
+message ValidationError {
+  int32 row = 1;
+  string field = 2;
+  string message = 3;
+}
+
+message ProcessingStats {
+  string started_at = 1;
+  string completed_at = 2;
+  int32 processing_time_ms = 3;
+  double success_rate = 4;
+  string estimated_completion = 5;
+}
+
+message PaginationInfo {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 total = 3;
+  int32 total_pages = 4;
+  bool has_next = 5;
+  bool has_prev = 6;
+}
+
+// ==================== Transaction Metrics Messages ====================
+
+message GetAverageTransactionValueRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message GetAverageTransactionValueResponse {
+  bool success = 1;
+  string message = 2;
+  double average_transaction_value = 3;
+}
+
+message GetTransactionVolumeRequest {
+  string merchant_id = 1;
+  string status = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string request_id = 5;
+}
+
+message GetTransactionVolumeResponse {
+  bool success = 1;
+  string message = 2;
+  double transaction_volume = 3;
+}
+
+message GetTransactionSuccessRateRequest {
+  string merchant_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  string request_id = 4;
+}
+
+message GetTransactionSuccessRateResponse {
+  bool success = 1;
+  string message = 2;
+  double transaction_success_rate = 3;
+}
+
+message GetPendingTransactionsRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message GetPendingTransactionsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 pending_transactions = 3;
+}
+
+message GetFailedTransactionsRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message GetFailedTransactionsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 failed_transactions = 3;
+}
+
+// ==================== Settlement Messages ====================
+
+message CreateMerchantSettlementRequest {
+  string merchant_id = 1;  // Changed to string for merchant IDs like "mer_xxxxx"
+  string settlement_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string beneficiary_account = 5;
+  string beneficiary_ifsc = 6;
+  string beneficiary_name = 7;
+  string description = 8;
+  string type = 9;
+  string priority = 10;
+  repeated TSPBalanceInfo tsp_balances = 11;
+  string metadata = 12;
+  string request_id = 13;
+}
+
+message MerchantSettlementResponse {
+  bool success = 1;
+  string settlement_id = 2;
+  string status = 3;
+  string tsp_provider = 4;
+  string external_transaction_id = 5;
+  double amount = 6;
+  string currency = 7;
+  SettlementRoutingDecision routing_decision = 8;
+  string estimated_completion = 9;
+  string error_message = 10;
+}
+
+message SettlementRoutingDecision {
+  string selected_tsp = 1;
+  double confidence = 2;
+  double score = 3;
+  repeated string reasoning = 4;
+  repeated string fallback_chain = 5;
+}
+
+message TSPBalanceInfo {
+  string tsp_provider = 1;
+  double available_balance = 2;
+  string currency = 3;
+  double utilization_percentage = 4;
+  string last_updated = 5;
+}
+
+message GetSettlementStatusRequest {
+  string settlement_id = 1;
+  int32 merchant_id = 2;
+  string request_id = 3;
+}
+
+message SettlementStatusResponse {
+  bool success = 1;
+  string settlement_id = 2;
+  string status = 3;
+  string tsp_provider = 4;
+  string external_transaction_id = 5;
+  double amount = 6;
+  string currency = 7;
+  string created_at = 8;
+  string updated_at = 9;
+  string completed_at = 10;
+  string failure_reason = 11;
+  SettlementRoutingDecision routing_decision = 12;
+}
+
+// List Settlements
+message ListSettlementsRequest {
+  string merchant_id = 1;
+  string status = 2;
+  string type = 3;
+  string start_date = 4;
+  string end_date = 5;
+  int32 page = 6;
+  int32 limit = 7;
+  string request_id = 8;
+}
+
+message SettlementDetails {
+  string settlement_id = 1;
+  string merchant_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string status = 5;
+  string type = 6;
+  string priority = 7;
+  string tsp_provider = 8;
+  string external_transaction_id = 9;
+  string beneficiary_account = 10;
+  string beneficiary_ifsc = 11;
+  string beneficiary_name = 12;
+  string bank_reference_number = 13;
+  string utr_number = 14;
+  double settlement_fee = 15;
+  double net_amount = 16;
+  string failure_reason = 17;
+  string created_at = 18;
+  string processing_started_at = 19;
+  string completed_at = 20;
+  string initiated_by = 21;
+  string processed_by = 22;
+  SettlementRoutingDecision routing_decision = 23;
+}
+
+message ListSettlementsResponse {
+  bool success = 1;
+  repeated SettlementDetails settlements = 2;
+  PaginationInfo pagination = 3;
+  string error_message = 4;
+}
+
+// Get Settlement Details
+message GetSettlementDetailsRequest {
+  string settlement_id = 1;
+  string merchant_id = 2;
+  string request_id = 3;
+}
+
+message GetSettlementDetailsResponse {
+  bool success = 1;
+  SettlementDetails settlement = 2;
+  string error_message = 3;
+}
+
+// Cancel Settlement
+message CancelSettlementRequest {
+  string settlement_id = 1;
+  string merchant_id = 2;
+  string reason = 3;
+  string cancelled_by = 4;
+  string request_id = 5;
+}
+
+message CancelSettlementResponse {
+  bool success = 1;
+  string settlement_id = 2;
+  string status = 3;
+  string message = 4;
+  string error_message = 5;
+}
+
+// Get Settlement Summary
+message GetSettlementSummaryRequest {
+  string merchant_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  string request_id = 4;
+}
+
+message SettlementSummaryData {
+  int32 total_settlements = 1;
+  double total_amount = 2;
+  int32 completed_settlements = 3;
+  int32 pending_settlements = 4;
+  int32 failed_settlements = 5;
+  double success_rate = 6;
+  int32 average_processing_time = 7;
+  double pending_amount = 8;
+  double completed_amount = 9;
+}
+
+message GetSettlementSummaryResponse {
+  bool success = 1;
+  SettlementSummaryData summary = 2;
+  string error_message = 3;
+}
+
+// Get Settlement Limits
+message GetSettlementLimitsRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message SettlementLimitsData {
+  double daily_limit = 1;
+  double monthly_limit = 2;
+  double remaining_daily = 3;
+  double remaining_monthly = 4;
+  double used_daily = 5;
+  double used_monthly = 6;
+  double utilization_daily = 7;
+  double utilization_monthly = 8;
+  double minimum_amount = 9;
+  double maximum_amount = 10;
+  double settlement_fee = 11;
+}
+
+message GetSettlementLimitsResponse {
+  bool success = 1;
+  SettlementLimitsData limits = 2;
+  string error_message = 3;
+}
+
+// Add Bank Account
+message AddBankAccountRequest {
+  string merchant_id = 1;
+  string account_holder_name = 2;
+  string account_number = 3;
+  string ifsc_code = 4;
+  string bank_name = 5;
+  string account_type = 6;
+  bool is_primary = 7;
+  string added_by = 8;
+  string request_id = 9;
+}
+
+message BankAccountDetails {
+  string bank_account_id = 1;
+  string merchant_id = 2;
+  string account_holder_name = 3;
+  string account_number = 4;
+  string ifsc_code = 5;
+  string bank_name = 6;
+  string account_type = 7;
+  bool is_primary = 8;
+  string verification_status = 9;
+  bool is_verified = 10;
+  string status = 11;
+  string created_at = 12;
+}
+
+message AddBankAccountResponse {
+  bool success = 1;
+  BankAccountDetails bank_account = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+// Verify Bank Account
+message VerifyBankAccountRequest {
+  string bank_account_id = 1;
+  string merchant_id = 2;
+  string verification_method = 3;
+  string verified_by = 4;
+  string request_id = 5;
+}
+
+message VerifyBankAccountResponse {
+  bool success = 1;
+  string verification_reference = 2;
+  string verification_status = 3;
+  string message = 4;
+  string error_message = 5;
+}
+
+// ==================== Transaction Summary Messages ====================
+
+message GetTransactionsSummaryRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string status = 5;
+  string payment_method = 6;
+  string currency = 7;
+}
+
+message GetTransactionsSummaryResponse {
+  int32 total_transactions = 1;
+  double total_volume = 2;
+  double success_rate = 3;
+  int32 failed_transactions = 4;
+  int32 pending_transactions = 5;
+  double average_amount = 6;
+  repeated TopCountryData top_countries = 7;
+  repeated TopPaymentMethodData top_payment_methods = 8;
+  FraudData fraud = 9;
+}
+
+message GetMerchantSummaryRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message GetMerchantSummaryResponse {
+  bool success = 1;
+  string message = 2;
+  MerchantSummaryData summary = 3;
+  string error_message = 4;
+}
+
+message MerchantSummaryData {
+  string merchant_id = 1;
+  string business_name = 2;
+  int32 total_transactions = 3;
+  double total_volume = 4;
+  double success_rate = 5;
+  string status = 6;
+  string created_at = 7;
+}
+
+message TopCountryData {
+  string country = 1;
+  int32 count = 2;
+  double volume = 3;
+}
+
+message TopPaymentMethodData {
+  string method = 1;
+  int32 count = 2;
+  double volume = 3;
+  double success_rate = 4;
+}
+
+message FraudData {
+  int32 total_fraud_alerts = 1;
+  double fraud_rate = 2;
+  int32 blocked_transactions = 3;
+}
+
+// Payout Summary Messages
+message GetPayoutSummaryRequest {
+  string merchant_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+  string status = 4;
+  string payment_method = 5;
+  string currency = 6;
+  bool include_time_series = 7;
+  bool include_comparison = 8;
+  string granularity = 9;
+  string customer_id = 10;
+  string customer_email = 11;
+  string customer_phone = 12;
+  string amount_range = 13;
+  string request_id = 14;
+}
+
+message PayoutSummaryResponse {
+  // Dashboard-specific metrics for 7 cards
+  int32 total_manual_payments = 1;
+  double payment_amount = 2;
+  int32 approved_payments = 3;
+  int32 avg_processing_time = 4;  // in minutes
+  int32 approved_today = 5;
+  int32 pending_approval = 6;
+  double approval_rate = 7;
+  
+  // Comparison data for each metric
+  PayoutComparisonData comparison = 8;
+  
+  // Additional metadata
+  string period = 9;
+  string currency = 10;
+  string last_updated = 11;
+  string error_message = 12;
+}
+
+// Manual Payment Messages
+message CreateManualPaymentRequest {
+  string merchant_id = 1;
+  string order_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string payment_method = 5;
+  string customer_name = 6;
+  string bank_reference_utr = 7;
+  string reason_for_manual_payment = 8;
+  string request_id = 9;
+}
+
+message CreateManualPaymentResponse {
+  bool success = 1;
+  string message = 2;
+  string payment_id = 3;
+  string status = 4;
+  string created_at = 5;
+  string error_message = 6;
+}
+
+message PayoutComparisonData {
+  ComparisonMetric total_manual_payments = 1;
+  ComparisonMetric payment_amount = 2;
+  ComparisonMetric approved_payments = 3;
+  ComparisonMetric avg_processing_time = 4;
+  ComparisonMetric approved_today = 5;
+  ComparisonMetric pending_approval = 6;
+  ComparisonMetric approval_rate = 7;
+}
+
+message ComparisonMetric {
+  double previous_value = 1;
+  double change_percentage = 2;
+  string trend = 3;  // "UP", "DOWN", "STABLE"
+}
+
+// Additional Payout Messages
+message GetAllPayoutTransactionsRequest {
+  string merchant_id = 1;
+  string status = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string currency = 5;
+  double min_amount = 6;
+  double max_amount = 7;
+  string customer_id = 8;
+  string search = 9;
+  int32 page = 10;
+  int32 limit = 11;
+  string request_id = 12;
+}
+
+message PayoutTransactionsResponse {
+  bool success = 1;
+  string message = 2;
+  PayoutTransactionsData data = 3;
+}
+
+message PayoutTransactionsData {
+  repeated PayoutTransaction transactions = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  int32 total_pages = 5;
+}
+
+message PayoutTransaction {
+  string id = 1;
+  string payout_id = 2;
+  string merchant_id = 3;
+  string customer_id = 4;
+  string customer_email = 5;
+  string customer_phone = 6;
+  double amount = 7;
+  string currency = 8;
+  string status = 9;
+  string payment_method = 10;
+  string created_at = 11;
+  string updated_at = 12;
+  string completed_at = 13;
+  string failure_reason = 14;
+  string external_payout_id = 15;
+  string tsp_provider = 16;
+  map<string, string> metadata = 17;
+}

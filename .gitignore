@@ -1,0 +1,44 @@
+# Environment Variables (CRITICAL - Never commit!)
+.env
+.env.*
+.env.local
+.env.*.local
+!.env.example
+!.env.sample
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Build output
+dist/
+build/
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output
+
+# IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# API Documentation (if sensitive)
+openapi-thekingdombank.yaml
+
+# Logs
+logs/
+*.log
+
+# OS
+Thumbs.db
+
+*.md
+!readme.md

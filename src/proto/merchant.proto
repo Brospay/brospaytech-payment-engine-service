@@ -1,0 +1,779 @@
+syntax = "proto3";
+
+package merchant;
+
+service MerchantService {
+  // Customer Management
+  rpc CreateCustomer(CreateCustomerRequest) returns (CustomerResponse);
+  rpc GetCustomer(GetCustomerRequest) returns (CustomerResponse);
+  rpc UpdateCustomer(UpdateCustomerRequest) returns (CustomerResponse);
+  rpc ListCustomers(ListCustomersRequest) returns (ListCustomersResponse);
+  rpc AssessCustomerRisk(RiskAssessmentRequest) returns (RiskAssessmentResponse);
+  rpc UpdateCustomerTransactionStats(UpdateCustomerTransactionStatsRequest) returns (UpdateCustomerTransactionStatsResponse);
+
+  // Merchant Management
+  rpc CreateMerchant(CreateMerchantRequest) returns (MerchantResponse);
+  rpc GetMerchant(GetMerchantRequest) returns (MerchantResponse);
+  rpc GetMerchantById(GetMerchantByIdRequest) returns (MerchantResponse);
+  rpc ListMerchants(ListMerchantsRequest) returns (ListMerchantsResponse);
+  rpc UpdateMerchant(UpdateMerchantRequest) returns (MerchantResponse);
+  rpc UpdateMerchantStatus(UpdateMerchantStatusRequest) returns (MerchantResponse);
+  rpc GetMerchantAnalytics(GetMerchantAnalyticsRequest) returns (MerchantAnalyticsResponse);
+
+  // Dashboard Authentication (Required by API Gateway)
+  rpc MerchantLogin(MerchantLoginRequest) returns (MerchantLoginResponse);
+  rpc RefreshMerchantToken(RefreshTokenRequest) returns (MerchantLoginResponse);
+  rpc ValidateMerchantSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+
+  // API Key Management
+  rpc GenerateAPIKey(GenerateAPIKeyRequest) returns (GenerateAPIKeyResponse);
+  rpc ValidateAPIKey(ValidateAPIKeyRequest) returns (ValidateAPIKeyResponse);
+  rpc ListAPIKeys(ListAPIKeysRequest) returns (ListAPIKeysResponse);
+  rpc RotateAPIKey(RotateAPIKeyRequest) returns (GenerateAPIKeyResponse);
+  rpc DeactivateAPIKey(DeactivateAPIKeyRequest) returns (StatusResponse);
+
+  // Authentication & Security
+  rpc ValidateMerchantAuth(ValidateMerchantAuthRequest) returns (ValidateMerchantAuthResponse);
+  rpc ValidateHMACSignature(ValidateHMACRequest) returns (ValidateHMACResponse);
+  rpc CheckIPWhitelist(CheckIPRequest) returns (CheckIPResponse);
+
+  // KYC Management
+  rpc UploadKYCDocument(UploadKYCDocumentRequest) returns (UploadKYCDocumentResponse);
+  rpc GetKYCDocuments(GetKYCDocumentsRequest) returns (GetKYCDocumentsResponse);
+  rpc UpdateKYCStatus(UpdateKYCStatusRequest) returns (UpdateKYCStatusResponse);
+  rpc DeleteKYCDocument(DeleteKYCDocumentRequest) returns (DeleteKYCDocumentResponse);
+
+  // Health Check
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Common Messages
+message StatusResponse {
+  bool success = 1;
+  string message = 2;
+  string error_code = 3;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string service_name = 2;
+  string version = 3;
+  int64 uptime = 4;
+  map<string, string> dependencies = 5;
+}
+
+// Customer Messages
+message CreateCustomerRequest {
+  string email = 1;
+  string phone = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string date_of_birth = 5;
+  string country = 6;
+  string ip_address = 7;
+  string device_fingerprint = 8;
+  string merchant_id = 9;
+  map<string, string> metadata = 10;
+}
+
+message GetCustomerRequest {
+  string customer_id = 1;
+  string merchant_id = 2;
+}
+
+message UpdateCustomerRequest {
+  string customer_id = 1;
+  string merchant_id = 2;
+  string email = 3;
+  string phone = 4;
+  string first_name = 5;
+  string last_name = 6;
+  string country = 7;
+  string ip_address = 8;
+  string device_fingerprint = 9;
+}
+
+message ListCustomersRequest {
+  string merchant_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  string search_term = 4;
+  string risk_level = 5;
+  string status = 6;
+  string environment = 7;
+}
+
+message CustomerResponse {
+  bool success = 1;
+  string message = 2;
+  CustomerData customer = 3;
+  string error_code = 4;
+}
+
+message ListCustomersResponse {
+  bool success = 1;
+  string message = 2;
+  repeated CustomerData customers = 3;
+  int32 total = 4;
+  int32 page = 5;
+  int32 limit = 6;
+}
+
+message CustomerData {
+  int32 id = 1;
+  string customer_id = 2;
+  string email = 3;
+  string phone = 4;
+  string first_name = 5;
+  string last_name = 6;
+  string date_of_birth = 7;
+  string country = 8;
+  string ip_address = 9;
+  string device_fingerprint = 10;
+  string status = 11;
+  CustomerRiskData risk_profile = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message CustomerRiskData {
+  string risk_level = 1;
+  double risk_score = 2;
+  double fraud_score = 3;
+  bool vip_status = 4;
+  int32 total_transactions = 5;
+  double total_amount = 6;
+  int32 successful_transactions = 7;
+  int32 failed_transactions = 8;
+  int32 chargeback_count = 9;
+  string first_transaction_date = 10;
+  string last_transaction_date = 11;
+  double average_transaction_amount = 12;
+  repeated string behavior_flags = 13;
+  string notes = 14;
+}
+
+// Risk Assessment Messages
+message RiskAssessmentRequest {
+  string customer_id = 1;
+  int32 merchant_id = 2;
+  string ip_address = 3;
+  string device_fingerprint = 4;
+  double transaction_amount = 5;
+  string payment_method = 6;
+  map<string, string> metadata = 7;
+}
+
+message RiskAssessmentResponse {
+  bool success = 1;
+  string message = 2;
+  RiskAssessmentResult result = 3;
+}
+
+message RiskAssessmentResult {
+  string customer_id = 1;
+  string risk_level = 2;
+  double risk_score = 3;
+  double fraud_score = 4;
+  repeated string reasons = 5;
+  repeated string recommendations = 6;
+  bool requires_manual_review = 7;
+  bool allow_transaction = 8;
+  repeated string blocked_reasons = 9;
+}
+
+// Update Customer Transaction Stats Messages
+message UpdateCustomerTransactionStatsRequest {
+  string customer_id = 1;
+  string merchant_id = 2;
+  string currency = 3;
+  double amount = 4;
+  string transaction_status = 5;  // "success" or "failed"
+  string transaction_id = 6;
+  string payment_method = 7;
+  string transaction_date = 8;
+}
+
+message UpdateCustomerTransactionStatsResponse {
+  bool success = 1;
+  string message = 2;
+  string customer_id = 3;
+  CustomerTransactionStats updated_stats = 4;
+  string error_code = 5;
+}
+
+message CustomerTransactionStats {
+  int32 total_transactions = 1;
+  double total_amount = 2;
+  int32 successful_transactions = 3;
+  int32 failed_transactions = 4;
+  double average_transaction_amount = 5;
+  string last_transaction_date = 6;
+  map<string, AssetTransactionStats> transactions_by_asset = 7;
+}
+
+message AssetTransactionStats {
+  double total_amount = 1;
+  int32 transaction_count = 2;
+  int32 successful_count = 3;
+  int32 failed_count = 4;
+  string last_transaction_date = 5;
+  double average_amount = 6;
+}
+
+// Merchant Messages
+message CreateMerchantRequest {
+  string business_name = 1;
+  string business_category = 2;
+  string business_description = 3;
+  BusinessInfo business_info = 4;
+  ContactInfo contact_info = 5;
+  MerchantSettings settings = 6;
+  string dashboard_email = 7;
+  string password_hash = 8;
+  PaymentConfig payment_config = 9;
+  SettlementConfig settlement_config = 10;
+  string created_by = 11;
+}
+
+message GetMerchantRequest {
+  int32 merchant_id = 1;
+  string merchant_id_string = 2;
+}
+
+message UpdateMerchantRequest {
+  string merchant_id = 1;
+  string business_name = 2;
+  string business_description = 3;
+  BusinessInfo business_info = 4;
+  ContactInfo contact_info = 5;
+  MerchantSettings settings = 6;
+}
+
+message UpdateMerchantStatusRequest {
+  string merchant_id = 1;
+  string status = 2;
+  string kyc_status = 3;
+  bool is_verified = 4;
+  string updated_by = 5;
+  string reason = 6;
+}
+
+message ListMerchantsRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string search_term = 3;
+  string status = 4;
+  string kyc_status = 5;
+  string business_category = 6;
+  string country = 7;
+  string created_after = 8;
+  string created_before = 9;
+  string sort_by = 10;
+  string sort_order = 11;
+}
+
+message MerchantResponse {
+  bool success = 1;
+  string message = 2;
+  MerchantData merchant = 3;
+  string error_code = 4;
+}
+
+message ListMerchantsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated MerchantData merchants = 3;
+  int32 total = 4;
+  int32 page = 5;
+  int32 limit = 6;
+  string error_code = 7;
+}
+
+message MerchantData {
+  int32 id = 1;
+  string merchant_id = 2;
+  string business_name = 3;
+  string business_category = 4;
+  string business_description = 5;
+  string status = 6;
+  string kyc_status = 7;
+  bool is_verified = 8;
+  BusinessInfo business_info = 9;
+  ContactInfo contact_info = 10;
+  MerchantSettings settings = 11;
+  string created_at = 12;
+  string updated_at = 13;
+}
+
+message BusinessInfo {
+  string registered_name = 1;
+  string display_name = 2;
+  string website = 3;
+  string business_type = 4;
+  string incorporation_date = 5;
+  string registration_number = 6;
+  string tax_id = 7;
+  string gst_number = 8;
+  string pan_number = 9;
+  BusinessAddress address = 10;
+  double monthly_volume = 11;
+}
+
+message BusinessAddress {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string postal_code = 4;
+  string country = 5;
+  string landmark = 6;
+}
+
+message ContactInfo {
+  ContactPerson primary_contact = 1;
+  ContactPerson technical_contact = 2;
+  ContactPerson financial_contact = 3;
+  string support_email = 4;
+  string support_phone = 5;
+  ContactPerson emergency_contact = 6;
+  TelegramInfo telegram_info = 7;
+  WhatsAppInfo whatsapp_info = 8;
+  string slack_webhook_url = 9;
+}
+
+message ContactPerson {
+  string first_name = 1;
+  string last_name = 2;
+  string email = 3;
+  string phone = 4;
+  string designation = 5;
+  string relationship = 6;
+}
+
+message TelegramInfo {
+  string chat_id = 1;
+  string username = 2;
+  bool verified = 3;
+  string verified_at = 4;
+}
+
+message WhatsAppInfo {
+  string phone_number = 1;
+  bool verified = 2;
+  string verified_at = 3;
+}
+
+message MerchantSettings {
+  string timezone = 1;
+  string currency = 2;
+  string language = 3;
+  NotificationSettings notifications = 4;
+  SecuritySettings security = 5;
+  FeatureSettings features = 6;
+}
+
+message NotificationSettings {
+  bool email_notifications = 1;
+  bool sms_notifications = 2;
+  bool webhook_notifications = 3;
+  bool transaction_alerts = 4;
+  bool security_alerts = 5;
+  bool telegram_notifications = 6;
+  bool whatsapp_notifications = 7;
+  bool slack_notifications = 8;
+  bool kyc_alerts = 9;
+}
+
+message SecuritySettings {
+  bool ip_whitelisting = 1;
+  repeated string whitelisted_ips = 2;
+  bool two_factor_auth = 3;
+  int32 session_timeout = 4;
+}
+
+message FeatureSettings {
+  repeated string payment_methods = 1;
+  repeated string supported_currencies = 2;
+  bool refunds_enabled = 3;
+  bool payouts_enabled = 4;
+  bool api_access_enabled = 5;
+}
+
+message PaymentConfig {
+  FeeConfig fees = 1;
+  LimitsConfig limits = 2;
+  RoutingConfig routing = 3;
+}
+
+message FeeConfig {
+  FeeStructure payin_fee = 1;
+  FeeStructure payout_fee = 2;
+}
+
+message FeeStructure {
+  double percentage = 1;
+  double fixed_fee = 2;
+  double min_fee = 3;
+  double max_fee = 4;
+  double gst_percentage = 5;
+}
+
+message LimitsConfig {
+  LimitStructure daily = 1;
+  LimitStructure weekly = 2;
+  LimitStructure monthly = 3;
+}
+
+message LimitStructure {
+  double payin = 1;
+  double payout = 2;
+  int32 transaction_count = 3;
+}
+
+message RoutingConfig {
+  bool auto_routing = 1;
+}
+
+message SettlementConfig {
+  string account_holder_name = 1;
+  string account_number = 2;
+  string ifsc_code = 3;
+  string bank_name = 4;
+  int32 settlement_frequency = 5;
+  bool auto_settlement = 6;
+}
+
+// API Key Messages
+message GenerateAPIKeyRequest {
+  int32 merchant_id = 1;
+  string environment = 2;
+  repeated string permissions = 3;
+  string description = 4;
+  string expires_at = 5;
+}
+
+message GenerateAPIKeyResponse {
+  bool success = 1;
+  string message = 2;
+  string api_key = 3;
+  string secret_salt = 4;
+  string key_id = 5;
+  string environment = 6;
+  repeated string permissions = 7;
+}
+
+message ValidateAPIKeyRequest {
+  string api_key = 1;
+  string environment = 2;
+  string required_permission = 3;
+  string client_ip = 4;
+}
+
+message ValidateAPIKeyResponse {
+  bool valid = 1;
+  string message = 2;
+  int32 merchant_id = 3;
+  string key_type = 4;
+  string environment = 5;
+  repeated string permissions = 6;
+  string error_code = 7;
+}
+
+message ListAPIKeysRequest {
+  int32 merchant_id = 1;
+  string environment = 2;
+}
+
+message ListAPIKeysResponse {
+  bool success = 1;
+  repeated APIKeyData api_keys = 2;
+}
+
+message APIKeyData {
+  string key_id = 1;
+  string key_prefix = 2;
+  string environment = 3;
+  repeated string permissions = 4;
+  bool is_active = 5;
+  string description = 6;
+  string created_at = 7;
+  string last_used_at = 8;
+}
+
+message RotateAPIKeyRequest {
+  string key_id = 1;
+  int32 merchant_id = 2;
+  repeated string new_permissions = 3;
+}
+
+message DeactivateAPIKeyRequest {
+  string key_id = 1;
+  int32 merchant_id = 2;
+}
+
+// Authentication Messages
+message ValidateMerchantAuthRequest {
+  AuthRequest auth_request = 1;
+}
+
+message AuthRequest {
+  int32 merchant_id = 1;
+  string customer_id = 2;
+  string auth_type = 3;
+  AuthCredentials credentials = 4;
+  RequestContext context = 5;
+}
+
+message AuthCredentials {
+  string api_key = 1;
+  string signature = 2;
+  string timestamp = 3;
+  string jwt_token = 4;
+  string secret_salt = 5;
+}
+
+message RequestContext {
+  string ip_address = 1;
+  string user_agent = 2;
+  string device_fingerprint = 3;
+  string request_id = 4;
+  string method = 5;
+  string path = 6;
+  string payload = 7;
+  map<string, string> headers = 8;
+  string environment = 9;
+}
+
+message ValidateMerchantAuthResponse {
+  bool authenticated = 1;
+  string message = 2;
+  int32 merchant_id = 3;
+  string key_type = 4;
+  string environment = 5;
+  repeated string permissions = 6;
+  string error_code = 7;
+  repeated string security_flags = 8;
+  string risk_level = 9;
+}
+
+// HMAC Validation Messages
+message ValidateHMACRequest {
+  string payload = 1;
+  string signature = 2;
+  string timestamp = 3;
+  string api_key = 4;
+  string secret_salt = 5;
+}
+
+message ValidateHMACResponse {
+  bool valid = 1;
+  string message = 2;
+  bool signature_matches = 3;
+  bool timestamp_valid = 4;
+  double time_delta = 5;
+  string error_code = 6;
+}
+
+// IP Whitelist Messages
+message CheckIPRequest {
+  string ip_address = 1;
+  int32 merchant_id = 2;
+  string environment = 3;
+  string user_agent = 4;
+  string request_path = 5;
+}
+
+message CheckIPResponse {
+  bool allowed = 1;
+  string message = 2;
+  repeated string security_flags = 3;
+  string risk_level = 4;
+  string block_reason = 5;
+}
+
+// Analytics Messages
+message GetMerchantAnalyticsRequest {
+  int32 merchant_id = 1;
+  string period = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string environment = 5;
+}
+
+message MerchantAnalyticsResponse {
+  bool success = 1;
+  string message = 2;
+  MerchantAnalytics analytics = 3;
+}
+
+message MerchantAnalytics {
+  string merchant_id = 1;
+  string period = 2;
+  MerchantMetrics metrics = 3;
+  repeated TrendData trends = 4;
+  ComparisonData comparison = 5;
+}
+
+message MerchantMetrics {
+  int32 total_transactions = 1;
+  int32 successful_transactions = 2;
+  int32 failed_transactions = 3;
+  double total_volume = 4;
+  double success_rate = 5;
+  double average_transaction_value = 6;
+  int32 unique_customers = 7;
+  int32 chargeback_count = 8;
+  double chargeback_rate = 9;
+  double net_revenue = 10;
+  double fees = 11;
+}
+
+message TrendData {
+  string date = 1;
+  int32 transactions = 2;
+  double volume = 3;
+  double success_rate = 4;
+}
+
+message ComparisonData {
+  MerchantMetrics previous_period = 1;
+  GrowthMetrics growth = 2;
+}
+
+message GrowthMetrics {
+  double transactions = 1;
+  double volume = 2;
+  double success_rate = 3;
+  double customers = 4;
+}
+
+// Additional Merchant Messages (API Gateway Integration)
+message GetMerchantByIdRequest {
+  string merchant_id = 1;
+}
+
+// Dashboard Authentication Messages
+message MerchantLoginRequest {
+  string email = 1;
+  string password = 2;
+  string ip_address = 3;
+  string user_agent = 4;
+  string device_fingerprint = 5;
+  string request_id = 6;
+}
+
+message MerchantLoginResponse {
+  bool success = 1;
+  string message = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  int64 expires_in = 5;
+  MerchantSessionData session_data = 6;
+  string error_code = 7;
+}
+
+message MerchantSessionData {
+  string merchant_id = 1;
+  string business_name = 2;
+  string email = 3;
+  bool is_verified = 4;
+  repeated string permissions = 5;
+  string session_id = 6;
+  int64 login_at = 7;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+  string request_id = 2;
+}
+
+message ValidateSessionRequest {
+  string access_token = 1;
+  string request_id = 2;
+}
+
+message ValidateSessionResponse {
+  bool valid = 1;
+  string message = 2;
+  MerchantSessionData session_data = 3;
+  string error_code = 4;
+}
+
+// KYC Management Messages
+message UploadKYCDocumentRequest {
+  string merchant_id = 1;
+  string document_type = 2; // "passport", "pan_card", "bank_statement", etc.
+  string file_name = 3;
+  string mime_type = 4;
+  bytes content = 5;
+  map<string, string> metadata = 6;
+  string uploaded_by = 7;
+}
+
+message UploadKYCDocumentResponse {
+  bool success = 1;
+  string message = 2;
+  KYCDocument document = 3;
+  string error_code = 4;
+}
+
+message GetKYCDocumentsRequest {
+  string merchant_id = 1;
+  string document_type = 2; // optional filter
+}
+
+message GetKYCDocumentsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated KYCDocument documents = 3;
+  string kyc_status = 4;
+  string verification_level = 5;
+  string error_code = 6;
+}
+
+message UpdateKYCStatusRequest {
+  string merchant_id = 1;
+  string kyc_status = 2; // "approved", "rejected", "under_review"
+  string verification_level = 3; // "basic", "enhanced", "premium"
+  string reviewed_by = 4;
+  string review_notes = 5;
+  repeated string approved_documents = 6;
+  repeated string rejected_documents = 7;
+}
+
+message UpdateKYCStatusResponse {
+  bool success = 1;
+  string message = 2;
+  string kyc_status = 3;
+  string error_code = 4;
+}
+
+message DeleteKYCDocumentRequest {
+  string merchant_id = 1;
+  string document_id = 2;
+  string deleted_by = 3;
+  string reason = 4;
+}
+
+message DeleteKYCDocumentResponse {
+  bool success = 1;
+  string message = 2;
+  string error_code = 3;
+}
+
+message KYCDocument {
+  string document_id = 1;
+  string document_type = 2;
+  string file_name = 3;
+  string file_url = 4;
+  string status = 5; // "pending", "approved", "rejected"
+  string uploaded_at = 6;
+  string reviewed_at = 7;
+  string review_notes = 8;
+  string uploaded_by = 9;
+  string reviewed_by = 10;
+  int64 file_size = 11;
+  string mime_type = 12;
+}

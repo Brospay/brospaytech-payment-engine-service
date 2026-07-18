@@ -1,0 +1,410 @@
+syntax = "proto3";
+
+package wallet;
+
+// Wallet Service - gRPC Interface for inter-service communication
+service WalletService {
+  // CRITICAL: Process payment with fee deduction (replaces old creditWallet)
+  rpc ProcessPaymentWithFees(ProcessPaymentWithFeesRequest) returns (ProcessPaymentWithFeesResponse);
+  
+  // Get wallet balance (internal use)
+  rpc GetWalletBalance(GetWalletBalanceRequest) returns (GetWalletBalanceResponse);
+  
+  // Multi-currency wallet operations for merchant service
+  rpc GetAllWalletBalances(GetAllWalletBalancesRequest) returns (GetAllWalletBalancesResponse);
+  rpc GetCurrencyWalletBalance(GetCurrencyWalletBalanceRequest) returns (GetCurrencyWalletBalanceResponse);
+  rpc CreateCurrencyWallet(CreateCurrencyWalletRequest) returns (CreateCurrencyWalletResponse);
+  rpc GetCurrencyTransactions(GetCurrencyTransactionsRequest) returns (GetCurrencyTransactionsResponse);
+  rpc GetWalletSummary(GetWalletSummaryRequest) returns (GetWalletSummaryResponse);
+  rpc GetMonthlyAnalytics(GetMonthlyAnalyticsRequest) returns (GetMonthlyAnalyticsResponse);
+  
+  // Create settlement (internal trigger)
+  rpc CreateSettlement(CreateSettlementRequest) returns (CreateSettlementResponse);
+  
+  // Update settlement status (from Payment Engine webhook)
+  rpc UpdateSettlementStatus(UpdateSettlementStatusRequest) returns (UpdateSettlementStatusResponse);
+  
+  // Health check for service monitoring
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+  
+  // Fee calculation (for Payment Engine estimations)
+  rpc CalculateFees(CalculateFeesRequest) returns (CalculateFeesResponse);
+  
+  // Block/Release balance for pending operations (payout, settlement)
+  rpc BlockAmount(BlockAmountRequest) returns (BlockAmountResponse);
+  rpc ReleaseBlockedAmount(ReleaseBlockedAmountRequest) returns (ReleaseBlockedAmountResponse);
+  rpc DebitBlockedAmount(DebitBlockedAmountRequest) returns (DebitBlockedAmountResponse);
+}
+
+// CRITICAL: New fee processing request (replaces creditWallet)
+message ProcessPaymentWithFeesRequest {
+  string merchant_id = 1;
+  double gross_amount = 2;
+  string currency = 3;
+  string transaction_type = 4;
+  string description = 5;
+  string source_transaction_id = 6;
+  string source_order_id = 7;
+  string request_id = 8;
+  string payment_method = 9;
+  map<string, string> metadata = 10;
+}
+
+message ProcessPaymentWithFeesResponse {
+  bool success = 1;
+  string merchant_wallet_transaction_id = 2;
+  string admin_wallet_transaction_id = 3;
+  double gross_amount = 4;
+  double total_fees = 5;
+  double net_amount_to_merchant = 6;
+  FeeBreakdown fee_breakdown = 7;
+  double merchant_balance_before = 8;
+  double merchant_balance_after = 9;
+  double admin_wallet_balance_after = 10;
+  string message = 11;
+  string error_message = 12;
+}
+
+message FeeBreakdown {
+  double settlement_fee = 1;
+  double platform_fee = 2;
+  double gateway_fee = 3;
+  double processing_fee = 4;
+  double subtotal_fees = 5;
+  double gst_on_fees = 6;
+  double total_fees_with_gst = 7;
+}
+
+// Wallet balance operations
+message GetWalletBalanceRequest {
+  string merchant_id = 1;
+  bool include_pending = 2;
+  string request_id = 3;
+}
+
+message GetWalletBalanceResponse {
+  bool success = 1;
+  WalletBalance balance = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message WalletBalance {
+  double available_balance = 1;
+  double total_balance = 2;
+  double blocked_balance = 3;
+  double pending_balance = 4;
+  double lifetime_balance = 5;
+  double lifetime_withdrawn = 6;
+  string currency = 7;
+  string status = 8;
+  string settlement_frequency = 9;
+  string last_updated = 10;
+}
+
+// Multi-currency wallet operations
+message GetAllWalletBalancesRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message GetAllWalletBalancesResponse {
+  bool success = 1;
+  repeated CurrencyWallet wallets = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message CurrencyWallet {
+  string wallet_id = 1;
+  string currency = 2;
+  string currency_symbol = 3;
+  double available_balance = 4;
+  double total_balance = 5;
+  double blocked_balance = 6;
+  double pending_balance = 7;
+  double lifetime_balance = 8;
+  double lifetime_withdrawn = 9;
+  string status = 10;
+  string last_transaction_at = 11;
+}
+
+message GetCurrencyWalletBalanceRequest {
+  string merchant_id = 1;
+  string currency = 2;
+  string request_id = 3;
+}
+
+message GetCurrencyWalletBalanceResponse {
+  bool success = 1;
+  CurrencyWallet wallet = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message CreateCurrencyWalletRequest {
+  string merchant_id = 1;
+  string currency = 2;
+  string request_id = 3;
+}
+
+message CreateCurrencyWalletResponse {
+  bool success = 1;
+  CurrencyWallet wallet = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message GetCurrencyTransactionsRequest {
+  string merchant_id = 1;
+  string currency = 2;
+  TransactionFilters filters = 3;
+  string request_id = 4;
+}
+
+message GetCurrencyTransactionsResponse {
+  bool success = 1;
+  repeated WalletTransaction transactions = 2;
+  Pagination pagination = 3;
+  string message = 4;
+  string error_message = 5;
+}
+
+message TransactionFilters {
+  int32 page = 1;
+  int32 limit = 2;
+  string start_date = 3;
+  string end_date = 4;
+  string type = 5;
+  string status = 6;
+  string search = 7;
+}
+
+message WalletTransaction {
+  string transaction_id = 1;
+  string type = 2;
+  double amount = 3;
+  double balance_before = 4;
+  double balance_after = 5;
+  string description = 6;
+  string source_type = 7;
+  string source_transaction_id = 8;
+  string source_order_id = 9;
+  string status = 10;
+  string processed_at = 11;
+  string settlement_date = 12;
+  string currency = 13;
+  double fee_amount = 14;
+  double gross_amount = 15;
+  string created_at = 16;
+}
+
+message Pagination {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 total = 3;
+  int32 total_pages = 4;
+  bool has_next = 5;
+  bool has_prev = 6;
+}
+
+message GetWalletSummaryRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message GetWalletSummaryResponse {
+  bool success = 1;
+  WalletSummary summary = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message WalletSummary {
+  int32 total_wallets = 1;
+  repeated string active_currencies = 2;
+  double total_balance_in_base_currency = 3;
+  string base_currency = 4;
+  repeated CurrencyBalance currency_balances = 5;
+}
+
+message CurrencyBalance {
+  string currency = 1;
+  double available_balance = 2;
+  double total_balance = 3;
+}
+
+message GetMonthlyAnalyticsRequest {
+  string merchant_id = 1;
+  string request_id = 2;
+}
+
+message GetMonthlyAnalyticsResponse {
+  bool success = 1;
+  MonthlyAnalytics analytics = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message MonthlyAnalytics {
+  repeated MonthlyData monthly_data = 1;
+}
+
+message MonthlyData {
+  string month = 1;
+  double total_credited = 2;
+  double total_debited = 3;
+  int32 transaction_count = 4;
+}
+
+// Settlement operations
+message CreateSettlementRequest {
+  string merchant_id = 1;
+  double amount = 2;
+  int32 bank_account_id = 3;
+  string description = 4;
+  string priority = 5;
+  string type = 6;
+  string scheduled_date = 7;
+  string request_id = 8;
+  string initiated_by = 9;
+}
+
+message CreateSettlementResponse {
+  bool success = 1;
+  Settlement settlement = 2;
+  string message = 3;
+  string error_message = 4;
+}
+
+message Settlement {
+  string settlement_id = 1;
+  string merchant_id = 2;
+  double amount = 3;
+  double settlement_fee = 4;
+  double net_amount = 5;
+  string currency = 6;
+  string type = 7;
+  string priority = 8;
+  string status = 9;
+  string description = 10;
+  int32 bank_account_id = 11;
+  string scheduled_date = 12;
+  string created_at = 13;
+  string updated_at = 14;
+  int32 retry_count = 15;
+  string failure_reason = 16;
+  string bank_reference_number = 17;
+  string utr_number = 18;
+}
+
+// Fee calculation
+message CalculateFeesRequest {
+  string merchant_id = 1;
+  double base_amount = 2;
+  string currency = 3;
+  string transaction_type = 4;
+  string payment_method = 5;
+  string request_id = 6;
+}
+
+message CalculateFeesResponse {
+  bool success = 1;
+  FeeBreakdown fee_breakdown = 2;
+  double total_fees = 3;
+  string message = 4;
+  string error_message = 5;
+}
+
+// Health check
+message HealthCheckRequest {
+  string service = 1;
+  string request_id = 2;
+}
+
+message HealthCheckResponse {
+  bool success = 1;
+  string status = 2;
+  string version = 3;
+  string message = 4;
+  int64 timestamp = 5;
+}
+
+// Settlement Status Update Messages
+message UpdateSettlementStatusRequest {
+  string settlement_id = 1;
+  string status = 2;
+  string tsp_provider = 3;
+  string external_transaction_id = 4;
+  string bank_reference_number = 5;
+  string utr = 6;
+  string completed_at = 7;
+  string failure_reason = 8;
+  map<string, string> metadata = 9;
+  string request_id = 10;
+}
+
+message UpdateSettlementStatusResponse {
+  bool success = 1;
+  string settlement_id = 2;
+  string status = 3;
+  double amount = 4;
+  string merchant_id = 5;
+  string message = 6;
+  string error_message = 7;
+}
+
+// Block/Release Amount messages
+message BlockAmountRequest {
+  string merchant_id = 1;
+  double amount = 2;
+  string currency = 3;
+  string reference_id = 4;
+  string block_reason = 5;
+  string request_id = 6;
+}
+
+message BlockAmountResponse {
+  bool success = 1;
+  string block_id = 2;
+  double blocked_amount = 3;
+  double available_balance = 4;
+  double total_blocked_balance = 5;
+  string message = 6;
+  string error_message = 7;
+}
+
+message ReleaseBlockedAmountRequest {
+  string merchant_id = 1;
+  string block_id = 2;
+  string currency = 3;
+  string release_reason = 4;
+  string request_id = 5;
+}
+
+message ReleaseBlockedAmountResponse {
+  bool success = 1;
+  double released_amount = 2;
+  double available_balance = 3;
+  double total_blocked_balance = 4;
+  string message = 5;
+  string error_message = 6;
+}
+
+message DebitBlockedAmountRequest {
+  string merchant_id = 1;
+  string block_id = 2;
+  string currency = 3;
+  string description = 4;
+  string request_id = 5;
+}
+
+message DebitBlockedAmountResponse {
+  bool success = 1;
+  string transaction_id = 2;
+  double debited_amount = 3;
+  double balance_after = 4;
+  string message = 5;
+  string error_message = 6;
+}
+
