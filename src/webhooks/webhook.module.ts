@@ -14,6 +14,7 @@ import { PaymentStatusModule } from '@/modules/payment-status/payment-status.mod
 import { WebhookService } from './webhook.service';
 import { WebhookController } from './webhook.controller';
 import { WebhookTestController } from './webhook-test.controller';
+import { PayUReturnController } from './payu-return.controller';
 import { MerchantWebhookService } from './merchant/merchant-webhook.service';
 import { SulifuPayWebhookHandler, KingdomBankWebhookHandler, PayazaWebhookHandler } from './handlers';
 
@@ -35,6 +36,7 @@ import { SulifuPayWebhookHandler, KingdomBankWebhookHandler, PayazaWebhookHandle
   controllers: [
     WebhookController,
     WebhookTestController,
+    PayUReturnController,
   ],
   providers: [
     WebhookService, 
