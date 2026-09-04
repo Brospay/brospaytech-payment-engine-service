@@ -6,7 +6,7 @@ import { PayUClient } from '@/adapters/tsp-adapters/payu/payu.client';
 
 
 @ApiTags('PayU')
-@Controller('payu')
+@Controller('webhooks/payu')
 @Public()
 export class PayUReturnController {
   private readonly logger = new Logger(PayUReturnController.name);
