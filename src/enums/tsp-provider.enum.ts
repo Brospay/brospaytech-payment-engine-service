@@ -14,6 +14,8 @@ export enum TSPProvider {
   PHONEPE = 'phonepe',
   PAYU = 'payu',
   PAYAZA = 'payaza',
+  CREDOPAY = 'credopay',
+  AIRPAY = 'airpay',
 }
 
 export const TSP_PROVIDER_DISPLAY_NAMES: Record<TSPProvider, string> = {
@@ -26,6 +28,8 @@ export const TSP_PROVIDER_DISPLAY_NAMES: Record<TSPProvider, string> = {
   [TSPProvider.PHONEPE]: 'PhonePe',
   [TSPProvider.PAYU]: 'PayU',
   [TSPProvider.PAYAZA]: 'Payaza',
+  [TSPProvider.CREDOPAY]: 'CredoPay',
+  [TSPProvider.AIRPAY]: 'Airpay',
 };
 
 /**
@@ -40,6 +44,8 @@ export const TSP_PROVIDER_CATEGORIES = {
     TSPProvider.CASHFREE,
     TSPProvider.PHONEPE,
     TSPProvider.PAYU,
+    TSPProvider.CREDOPAY,
+    TSPProvider.AIRPAY,
   ],
   international: [
     TSPProvider.STRIPE,
