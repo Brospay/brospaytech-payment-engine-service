@@ -35,6 +35,9 @@ export class TSPManagementService {
         configurationId: `tsp_${config.id}`,
         id: config.id, // Include raw database ID for internal use
         providerName: config.providerName,
+        // Without this the gRPC layer falls back to providerName and the admin
+        // panel shows the raw lowercase identifier instead of the given name.
+        displayName: config.displayName,
         environment: config.environment,
         isActive: config.isActive,
         priority: config.priority, // Include priority

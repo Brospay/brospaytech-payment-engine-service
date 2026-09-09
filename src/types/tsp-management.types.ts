@@ -47,6 +47,7 @@ export interface TSPConfigurationSummary {
   configurationId: string;
   id?: number; 
   providerName: string;
+  displayName?: string;
   environment: string;
   isActive: boolean;
   priority?: number; 
